@@ -5,6 +5,8 @@ import multer from 'multer';
 import path from 'path';
 import axios from 'axios';
 import { fileURLToPath } from 'url';
+import FormData from 'form-data';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,14 +23,24 @@ app.post('/upload', upload.single('file'), async (req, res) => {  // Changed fro
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Send file to Python server for processing
+    // Create a new FormData instance
     const formData = new FormData();
-    formData.append('file', req.file);
+    
+    // Add the file to the FormData using a readable stream
+    formData.append('file', fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
     
     const response = await axios.post('http://localhost:5000/convert', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        ...formData.getHeaders()
       },
+    });
+
+    // Clean up: delete the temporary file
+    fs.unlink(req.file.path, (err) => {
+      if (err) console.error('Error deleting temporary file:', err);
     });
 
     res.json(response.data);
