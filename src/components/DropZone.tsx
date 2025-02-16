@@ -33,27 +33,39 @@ export const DropZone = () => {
     setIsProcessing(true);
     setProgress(0);
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 5;
-      });
-    }, 500);
+    const formData = new FormData();
+    formData.append('audio', file);
 
     try {
-      // TODO: Replace with actual upload logic
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const response = await fetch('http://localhost:3001/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      // Handle the MIDI file response
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       
+      // Create download link
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'converted.mid';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
       setProgress(100);
       toast({
         title: "Success!",
-        description: "Your file has been processed successfully.",
+        description: "Your file has been converted to MIDI. Download starting...",
       });
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: "Failed to process the file. Please try again.",
@@ -61,7 +73,6 @@ export const DropZone = () => {
       });
     } finally {
       setIsProcessing(false);
-      clearInterval(interval);
     }
   };
 
@@ -95,7 +106,7 @@ export const DropZone = () => {
             <div className="w-full space-y-4">
               <p className="text-lg font-medium">Processing your file...</p>
               <Progress value={progress} className="w-full" />
-              <p className="text-sm text-muted-foreground">{progress}% complete</p>
+              <p className="text-sm text-muted-foreground">Converting audio to MIDI...</p>
             </div>
           </>
         ) : (
