@@ -34,7 +34,7 @@ export const DropZone = () => {
     setProgress(0);
 
     const formData = new FormData();
-    formData.append('audio', file);
+    formData.append('file', file);  // Changed from 'audio' to 'file'
 
     try {
       const response = await fetch('http://localhost:3001/upload', {
@@ -73,6 +73,7 @@ export const DropZone = () => {
       });
     } finally {
       setIsProcessing(false);
+      setProgress(0);
     }
   };
 

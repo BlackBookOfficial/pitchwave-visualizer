@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 // Endpoint to handle file uploads
-app.post('/upload', upload.single('audio'), async (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {  // Changed from 'audio' to 'file'
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
